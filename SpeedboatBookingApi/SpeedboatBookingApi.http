@@ -1,0 +1,6 @@
+@SpeedboatBookingApi_HostAddress = http://localhost:5104
+
+GET {{SpeedboatBookingApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

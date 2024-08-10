@@ -1,0 +1,44 @@
+﻿@page "/transferbooking"
+
+<div>
+    <h3>Transfer Booking</h3>
+    <div>
+        <select disabled>
+            <option>Transfer Type</option>
+        </select>
+        <input type="radio" id="specifyBoat" name="boatType" />
+        <label for="specifyBoat">Specify Boat</label>
+    </div>
+    <div>
+        <select>
+            <!-- Fetch destinations from Google Sheets and populate options here -->
+        </select>
+        <select>
+            <!-- Fetch destinations from Google Sheets and populate options here -->
+        </select>
+    </div>
+    <div>
+        <input type="radio" id="date" name="dateType" value="date" checked />
+        <label for="date">Date</label>
+        <input type="radio" id="returnDate" name="dateType" value="return" />
+        <label for="returnDate">Return Date</label>
+    </div>
+    <div>
+        <input type="date" />
+        <input type="date" disabled />
+    </div>
+    <div>
+        <label>Pax:</label>
+        <input type="number" />
+        <input type="radio" id="luggage" name="luggage" value="luggage" checked />
+        <label for="luggage">Luggage</label>
+        <input type="radio" id="noLuggage" name="luggage" value="noLuggage" />
+        <label for="noLuggage">No Luggage</label>
+    </div>
+    <div>
+        <input type="number" disabled />
+        <input type="radio" id="activatePaxReturn" name="paxReturn" />
+        <label for="activatePaxReturn">Activate Pax Return Diff</label>
+    </div>
+    <button>Book-It</button>
+</div>

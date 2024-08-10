@@ -1,0 +1,53 @@
+﻿@page "/speedboatbooking"
+@inject GoogleSheetsService SheetsService
+
+<div>
+    <h3>Speedboat Booking</h3>
+    <div>
+        <label>Speedboat:</label>
+        <select>
+            <!-- Fetch speedboats from Google Sheets and populate options here -->
+            @if (speedboats != null)
+            {
+                @foreach (var speedboat in speedboats)
+                {
+                    <option>@speedboat</option>
+                }
+            }
+        </select>
+    </div>
+    <div>
+        <input type="radio" id="singleDate" name="dateType" value="single" checked />
+        <label for="singleDate">Single Date</label>
+        <input type="radio" id="rangeDate" name="dateType" value="range" />
+        <label for="rangeDate">Range</label>
+    </div>
+    <div>
+        <input type="date" />
+        <input type="date" disabled />
+    </div>
+    <div>
+        <label>Booker:</label>
+        <select>
+            <!-- Fetch bookers from Google Sheets and populate options here -->
+        </select>
+        <button>Add booker</button>
+    </div>
+    <div>
+        <input type="radio" id="withSkipper" name="skipper" value="with" checked />
+        <label for="withSkipper">With Skipper</label>
+        <input type="radio" id="withoutSkipper" name="skipper" value="without" />
+        <label for="withoutSkipper">Without Skipper</label>
+    </div>
+    <button>Book-It</button>
+</div>
+
+@code {
+    private List<string> speedboats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var sheetData = await SheetsService.GetSheetDataAsync("speedboats");
+        speedboats = sheetData.Skip(1).Select(row => row[0].ToString()).ToList();
+    }
+}
