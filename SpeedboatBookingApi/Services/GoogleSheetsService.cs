@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Globalization;
+using Serilog;
 
 namespace SpeedboatBookingApi.Services
 {
@@ -178,37 +179,56 @@ namespace SpeedboatBookingApi.Services
 
         public async Task<Color?> GetCellBackgroundColorAsync(string sheetName, int rowIndex, int columnIndex)
         {
+            Log.Information("Attempting to retrieve full cell data for {SheetName}, row {RowIndex}, column {ColumnIndex}",
+                sheetName, rowIndex, columnIndex);
+
             var sheet = await _sheetsService.Spreadsheets.Get(_spreadsheetId).ExecuteAsync();
             var sheetId = sheet.Sheets.FirstOrDefault(s => s.Properties.Title == sheetName)?.Properties.SheetId;
 
             if (sheetId == null)
             {
+                Log.Warning("Sheet with name '{SheetName}' not found", sheetName);
                 throw new Exception($"Sheet with name '{sheetName}' not found.");
             }
 
-            // Define the range for the specific cell
-            var range = $"{sheetName}!{(char)('A' + columnIndex)}{rowIndex + 1}";
-
-            // Get the cell data including its format
-            var request = _sheetsService.Spreadsheets.Values.BatchGet(_spreadsheetId);
-            request.Ranges = new List<string> { range };
-            request.MajorDimension = SpreadsheetsResource.ValuesResource.BatchGetRequest.MajorDimensionEnum.ROWS;
+            var request = _sheetsService.Spreadsheets.Get(_spreadsheetId);
+            request.Ranges = new List<string> { $"{sheetName}!{(char)('A' + columnIndex)}{rowIndex + 1}" };
+            request.Fields = "sheets.data.rowData.values.userEnteredFormat"; // Request the full user-entered format
 
             var response = await request.ExecuteAsync();
+            var sheetData = response.Sheets.FirstOrDefault()?.Data.FirstOrDefault();
 
-            if (response.ValueRanges != null && response.ValueRanges.Count > 0)
+            if (sheetData?.RowData != null && sheetData.RowData.Count > 0)
             {
-                var rowData = response.ValueRanges[0].Values?.FirstOrDefault();
-                if (rowData != null && rowData.Count > 0)
+                var cell = sheetData.RowData[0].Values?[0];
+                var userEnteredFormat = cell?.UserEnteredFormat;
+
+                if (userEnteredFormat != null)
                 {
-                    var cellValue = rowData[0]?.ToString();
-                    var cellFormat = rowData[0] as CellData;
-                    return cellFormat?.UserEnteredFormat?.BackgroundColor;
+                    Log.Information("Retrieved full cell format: {Format}", userEnteredFormat);
+                    Log.Information("Background Color: {BackgroundColor}", userEnteredFormat.BackgroundColor);
+                    Log.Information("Text Format: {TextFormat}", userEnteredFormat.TextFormat);
+                    Log.Information("Borders: {Borders}", userEnteredFormat.Borders);
+                    Log.Information("Horizontal Alignment: {HorizontalAlignment}", userEnteredFormat.HorizontalAlignment);
+
+                    return userEnteredFormat.BackgroundColor; // Return the background color
+                }
+                else
+                {
+                    Log.Warning("No user-entered format found for the specified cell.");
                 }
             }
+            else
+            {
+                Log.Warning("No data found for the specified cell.");
+            }
 
-            return null;
+            return null; // Return null if no color is found
         }
+
+
+
+
 
     }
 }

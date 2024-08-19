@@ -1,32 +1,59 @@
 using SpeedboatBookingApi.Services;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Build configuration
+var configuration = builder.Configuration;
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateLogger();
 
-// Configure GoogleSheetsService
-var spreadsheetId = "1AjyJFcXeGAzWPoF2zYbJuGe2RdmvqXMFa3_fvYTUwA0";
-var jsonPath = "C:\\Users\\ido\\OneDrive\\SpeedboatBookingApp\\speedboatbookingapp-28f41b29a0c0.json"; // Update this path if needed
-builder.Services.AddSingleton(new GoogleSheetsService(spreadsheetId, jsonPath));
+builder.Host.UseSerilog(); // Use Serilog for logging
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    Log.Information("Starting web host");
+
+    // Add services to the container.
+    builder.Services.AddControllers();
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    // Configure GoogleSheetsService
+    var spreadsheetId = "1AjyJFcXeGAzWPoF2zYbJuGe2RdmvqXMFa3_fvYTUwA0";
+    var jsonPath = "C:\\Users\\ido\\OneDrive\\SpeedboatBookingApp\\speedboatbookingapp-28f41b29a0c0.json"; // Update this path if needed
+    builder.Services.AddSingleton(new GoogleSheetsService(spreadsheetId, jsonPath));
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseSerilogRequestLogging(); // Add Serilog request logging
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Host terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

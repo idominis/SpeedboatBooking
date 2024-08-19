@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using SpeedboatBookingApi.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -109,13 +110,17 @@ namespace SpeedboatBookingApi.Controllers
                         blue = cellColor.Blue
                     });
                 }
-                return NotFound(new { message = "Cell color not found or cell has no color." });
+                return Ok(new { message = "Cell has no explicit background color set; default is being used." });
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "An error occurred while trying to retrieve the cell background color.");
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+
+
 
 
     }
