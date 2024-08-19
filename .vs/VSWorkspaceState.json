@@ -1,6 +1,10 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\SpeedboatBookingApi",
+    "\\SpeedboatBookingApi\\Controllers",
+    "\\SpeedboatBookingApi\\Services"
   ],
+  "SelectedNode": "\\SpeedboatBookingApi\\Controllers\\SheetsController.cs",
   "PreviewInSolutionExplorer": false
 }
