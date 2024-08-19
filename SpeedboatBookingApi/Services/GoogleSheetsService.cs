@@ -128,7 +128,7 @@ namespace SpeedboatBookingApi.Services
         // Method to get the column index by speedboat name
         public async Task<int?> GetColumnIndexBySpeedboatNameAsync(string sheetName, string speedboatName)
         {
-            var range = $"{sheetName}!2:2";
+            var range = $"{sheetName}!1:1";
             var request = _sheetsService.Spreadsheets.Values.Get(_spreadsheetId, range);
             var response = await request.ExecuteAsync();
 
@@ -161,6 +161,54 @@ namespace SpeedboatBookingApi.Services
             await updateRequest.ExecuteAsync();
         }
 
+        // Method to read the value from a specific cell
+        public async Task<string> GetCellValueAsync(string sheetName, int rowIndex, int columnIndex)
+        {
+            var range = $"{sheetName}!{(char)('A' + columnIndex)}{rowIndex + 1}";
+            var request = _sheetsService.Spreadsheets.Values.Get(_spreadsheetId, range);
+            var response = await request.ExecuteAsync();
+
+            if (response.Values != null && response.Values.Count > 0 && response.Values[0].Count > 0)
+            {
+                return response.Values[0][0]?.ToString();
+            }
+
+            return null; // Return null if the cell is empty or not found
+        }
+
+        public async Task<Color?> GetCellBackgroundColorAsync(string sheetName, int rowIndex, int columnIndex)
+        {
+            var sheet = await _sheetsService.Spreadsheets.Get(_spreadsheetId).ExecuteAsync();
+            var sheetId = sheet.Sheets.FirstOrDefault(s => s.Properties.Title == sheetName)?.Properties.SheetId;
+
+            if (sheetId == null)
+            {
+                throw new Exception($"Sheet with name '{sheetName}' not found.");
+            }
+
+            // Define the range for the specific cell
+            var range = $"{sheetName}!{(char)('A' + columnIndex)}{rowIndex + 1}";
+
+            // Get the cell data including its format
+            var request = _sheetsService.Spreadsheets.Values.BatchGet(_spreadsheetId);
+            request.Ranges = new List<string> { range };
+            request.MajorDimension = SpreadsheetsResource.ValuesResource.BatchGetRequest.MajorDimensionEnum.ROWS;
+
+            var response = await request.ExecuteAsync();
+
+            if (response.ValueRanges != null && response.ValueRanges.Count > 0)
+            {
+                var rowData = response.ValueRanges[0].Values?.FirstOrDefault();
+                if (rowData != null && rowData.Count > 0)
+                {
+                    var cellValue = rowData[0]?.ToString();
+                    var cellFormat = rowData[0] as CellData;
+                    return cellFormat?.UserEnteredFormat?.BackgroundColor;
+                }
+            }
+
+            return null;
+        }
 
     }
 }

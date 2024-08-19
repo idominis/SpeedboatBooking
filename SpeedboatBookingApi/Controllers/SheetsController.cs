@@ -75,5 +75,48 @@ namespace SpeedboatBookingApi.Controllers
             }
             return BadRequest(new { message = "Could not find the specified date or speedboat name" });
         }
+
+        [HttpGet("getCellValue")]
+        public async Task<IActionResult> GetCellValue(string sheetName, int rowIndex, int columnIndex)
+        {
+            try
+            {
+                var cellValue = await _sheetsService.GetCellValueAsync(sheetName, rowIndex, columnIndex);
+                if (cellValue != null)
+                {
+                    return Ok(new { value = cellValue });
+                }
+                return NotFound(new { message = "Cell is empty or not found." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("getCellBackgroundColor")]
+        public async Task<IActionResult> GetCellBackgroundColor(string sheetName, int rowIndex, int columnIndex)
+        {
+            try
+            {
+                var cellColor = await _sheetsService.GetCellBackgroundColorAsync(sheetName, rowIndex, columnIndex);
+                if (cellColor != null)
+                {
+                    return Ok(new
+                    {
+                        red = cellColor.Red,
+                        green = cellColor.Green,
+                        blue = cellColor.Blue
+                    });
+                }
+                return NotFound(new { message = "Cell color not found or cell has no color." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
     }
 }
