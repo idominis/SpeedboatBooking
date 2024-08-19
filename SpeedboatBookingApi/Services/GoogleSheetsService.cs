@@ -5,6 +5,7 @@ using Google.Apis.Sheets.v4.Data;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace SpeedboatBookingApi.Services
 {
@@ -99,9 +100,24 @@ namespace SpeedboatBookingApi.Services
             {
                 for (int i = 0; i < response.Values.Count; i++)
                 {
-                    if (DateTime.TryParse(response.Values[i][0]?.ToString(), out DateTime rowDate) && rowDate == date)
+                    // Check if the current row has any values
+                    if (response.Values[i].Count > 0)
                     {
-                        return i;
+                        string cellValue = response.Values[i][0]?.ToString();
+
+                        // Attempt to parse the date using the expected format "d.M."
+                        if (DateTime.TryParseExact(cellValue,
+                                                   "d.M.",
+                                                   CultureInfo.InvariantCulture,
+                                                   DateTimeStyles.None,
+                                                   out DateTime rowDate))
+                        {
+                            // Compare only day and month
+                            if (rowDate.Day == date.Day && rowDate.Month == date.Month)
+                            {
+                                return i; // Return the row index if the date matches
+                            }
+                        }
                     }
                 }
             }
