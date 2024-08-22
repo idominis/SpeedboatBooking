@@ -30,6 +30,16 @@ try
     var jsonPath = "C:\\Users\\ido\\OneDrive\\SpeedboatBookingApp\\speedboatbookingapp-28f41b29a0c0.json"; // Update this path if needed
     builder.Services.AddSingleton(new GoogleSheetsService(spreadsheetId, jsonPath));
 
+    // Configure CORS to allow requests from the Blazor app
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowBlazorApp",
+            policy => policy.WithOrigins("https://localhost:7293")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials());
+    });
+
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
@@ -42,6 +52,8 @@ try
     app.UseSerilogRequestLogging(); // Add Serilog request logging
 
     app.UseHttpsRedirection();
+
+    app.UseCors("AllowBlazorApp"); // Apply the CORS policy
 
     app.UseAuthorization();
 

@@ -1,32 +1,23 @@
-﻿using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
-using Google.Apis.Sheets.v4;
-using Google.Apis.Sheets.v4.Data;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Net.Http.Json;
 
 public class GoogleSheetsService
 {
-    private static readonly string[] Scopes = { SheetsService.Scope.Spreadsheets };
-    private readonly SheetsService _sheetsService;
-    private readonly string _spreadsheetId;
+    private readonly HttpClient _httpClient;
 
-    public GoogleSheetsService(string spreadsheetId, string credentialJson)
+    public GoogleSheetsService(HttpClient httpClient)
     {
-        var credential = GoogleCredential.FromJson(credentialJson).CreateScoped(Scopes);
-        _sheetsService = new SheetsService(new BaseClientService.Initializer()
-        {
-            HttpClientInitializer = credential,
-            ApplicationName = "SpeedboatBookingApp",
-        });
-        _spreadsheetId = spreadsheetId;
+        _httpClient = httpClient;
     }
 
-    public async Task<IList<IList<object>>> GetSheetDataAsync(string sheetName)
+    public async Task<List<string>> GetSpeedboatsAsync()
     {
-        var range = $"{sheetName}!A1:Z";
-        var request = _sheetsService.Spreadsheets.Values.Get(_spreadsheetId, range);
-        var response = await request.ExecuteAsync();
-        return response.Values;
+        var result = await _httpClient.GetFromJsonAsync<List<string>>("https://localhost:7089/api/sheets/GetSpeedboatNames");
+        return result ?? new List<string>();
+    }
+
+    public async Task<List<string>> GetBookersAsync()
+    {
+        var result = await _httpClient.GetFromJsonAsync<List<string>>("https://localhost:7089/api/sheets/GetBookerNames");
+        return result ?? new List<string>();
     }
 }

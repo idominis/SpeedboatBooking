@@ -119,8 +119,43 @@ namespace SpeedboatBookingApi.Controllers
             }
         }
 
+        [HttpGet("getSpeedboatNames")]
+        public async Task<IActionResult> GetSpeedboatNames()
+        {
+            try
+            {
+                var speedboatNames = await _sheetsService.GetSpeedboatNamesAsync();
+                if (speedboatNames != null && speedboatNames.Count > 0)
+                {
+                    return Ok(speedboatNames);
+                }
+                return NotFound(new { message = "No speedboat names found." });
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred while trying to retrieve speedboat names.");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
-
+        [HttpGet("getBookerNames")]
+        public async Task<IActionResult> GetBookerNames()
+        {
+            try
+            {
+                var bookerNames = await _sheetsService.GetBookerNamesAsync();
+                if (bookerNames != null && bookerNames.Count > 0)
+                {
+                    return Ok(bookerNames);
+                }
+                return NotFound(new { message = "No booker names found." });
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred while trying to retrieve booker names.");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
 
     }

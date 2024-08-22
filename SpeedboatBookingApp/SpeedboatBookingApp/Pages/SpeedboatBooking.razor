@@ -1,12 +1,12 @@
 ﻿@page "/speedboatbooking"
+@inject IJSRuntime JSRuntime
 @inject GoogleSheetsService SheetsService
 
-<div>
+<div class="container mt-4">
     <h3>Speedboat Booking</h3>
-    <div>
-        <label>Speedboat:</label>
-        <select>
-            <!-- Fetch speedboats from Google Sheets and populate options here -->
+    <div class="mb-3">
+        <label class="form-label">Speedboat:</label>
+        <select class="form-select">
             @if (speedboats != null)
             {
                 @foreach (var speedboat in speedboats)
@@ -16,38 +16,67 @@
             }
         </select>
     </div>
-    <div>
-        <input type="radio" id="singleDate" name="dateType" value="single" checked />
+    <div class="mb-3">
+        <input type="radio" id="singleDate" name="dateType" value="single" checked @onchange="OnDateTypeChange" />
         <label for="singleDate">Single Date</label>
-        <input type="radio" id="rangeDate" name="dateType" value="range" />
+        <input type="radio" id="rangeDate" name="dateType" value="range" @onchange="OnDateTypeChange" />
         <label for="rangeDate">Range</label>
     </div>
-    <div>
-        <input type="date" />
-        <input type="date" disabled />
+    <div class="mb-3">
+        <input id="date1" class="form-control" />
+        <input id="date2" class="form-control" disabled="@isSecondDateDisabled" />
     </div>
-    <div>
-        <label>Booker:</label>
-        <select>
-            <!-- Fetch bookers from Google Sheets and populate options here -->
+    <div class="mb-3">
+        <label class="form-label">Booker:</label>
+        <select class="form-select">
+            @if (bookers != null)
+            {
+                @foreach (var booker in bookers)
+                {
+                    <option>@booker</option>
+                }
+            }
         </select>
-        <button>Add booker</button>
+        <button class="btn btn-primary mt-2">Add booker</button>
     </div>
-    <div>
+    <div class="mb-3">
         <input type="radio" id="withSkipper" name="skipper" value="with" checked />
         <label for="withSkipper">With Skipper</label>
         <input type="radio" id="withoutSkipper" name="skipper" value="without" />
         <label for="withoutSkipper">Without Skipper</label>
     </div>
-    <button>Book-It</button>
+    <button class="btn btn-success">Book-It</button>
 </div>
 
 @code {
     private List<string> speedboats;
+    private List<string> bookers;
+    private bool isSecondDateDisabled = true;
 
     protected override async Task OnInitializedAsync()
     {
-        var sheetData = await SheetsService.GetSheetDataAsync("speedboats");
-        speedboats = sheetData.Skip(1).Select(row => row[0].ToString()).ToList();
+        speedboats = await SheetsService.GetSpeedboatsAsync();
+        bookers = await SheetsService.GetBookersAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeBootstrapDatepicker", "date1", DateTime.Today.ToString("MM/dd/yyyy"));
+            await JSRuntime.InvokeVoidAsync("initializeBootstrapDatepicker", "date2", DateTime.Today.AddDays(1).ToString("MM/dd/yyyy"));
+        }
+    }
+
+    private void OnDateTypeChange(ChangeEventArgs e)
+    {
+        if (e.Value.ToString() == "range")
+        {
+            isSecondDateDisabled = false;
+        }
+        else
+        {
+            isSecondDateDisabled = true;
+        }
     }
 }

@@ -226,7 +226,42 @@ namespace SpeedboatBookingApi.Services
             return null; // Return null if no color is found
         }
 
+        public async Task<List<string>> GetSpeedboatNamesAsync()
+        {
+            var range = "Availability2024!C1:P1"; // Hardcoded range for speedboat names (row 0, columns 2-15)
+            var request = _sheetsService.Spreadsheets.Values.Get(_spreadsheetId, range);
+            var response = await request.ExecuteAsync();
 
+            var speedboatNames = new List<string>();
+            if (response.Values != null && response.Values.Count > 0)
+            {
+                var headerRow = response.Values[0];
+                speedboatNames.AddRange(headerRow.Select(cell => cell?.ToString()).Where(name => !string.IsNullOrEmpty(name)));
+            }
+
+            return speedboatNames;
+        }
+
+        public async Task<List<string>> GetBookerNamesAsync()
+        {
+            var range = "bookers!C2:C"; // Assuming booker names are in column A, starting from row 1
+            var request = _sheetsService.Spreadsheets.Values.Get(_spreadsheetId, range);
+            var response = await request.ExecuteAsync();
+
+            var bookerNames = new List<string>();
+            if (response.Values != null && response.Values.Count > 0)
+            {
+                foreach (var row in response.Values)
+                {
+                    if (row.Count > 0 && !string.IsNullOrEmpty(row[0]?.ToString()))
+                    {
+                        bookerNames.Add(row[0].ToString());
+                    }
+                }
+            }
+
+            return bookerNames;
+        }
 
 
 
