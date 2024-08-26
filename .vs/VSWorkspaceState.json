@@ -3,8 +3,9 @@
     "",
     "\\SpeedboatBookingApi",
     "\\SpeedboatBookingApi\\Controllers",
-    "\\SpeedboatBookingApi\\Services"
+    "\\SpeedboatBookingApi\\Services",
+    "\\SpeedboatBookingApp"
   ],
-  "SelectedNode": "\\SpeedboatBookingApi\\Program.cs",
+  "SelectedNode": "\\SpeedboatBookingApi\\Controllers\\SheetsController.cs",
   "PreviewInSolutionExplorer": false
 }
