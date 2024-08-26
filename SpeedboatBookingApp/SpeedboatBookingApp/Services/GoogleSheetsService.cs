@@ -55,4 +55,18 @@ public class GoogleSheetsService
         var url = $"https://localhost:7089/api/sheets/enterRenterName?sheetName={sheetName}&date={date:yyyy-MM-dd}&speedboatName={speedboatName}&renterName={renterName}";
         await _httpClient.PostAsync(url, null);
     }
+
+    // Method to get sheet data for display in a table
+    public async Task<IList<IList<object>>> GetSheetDataAsync(string sheetName)
+    {
+        var result = await _httpClient.GetFromJsonAsync<IList<IList<object>>>($"https://localhost:7089/api/sheets/{sheetName}");
+        return result ?? new List<IList<object>>();
+    }
+
+    // Method to get sheet data for display in a table with cell colors
+    public async Task<IList<IList<CellDataResponse>>> GetSheetDataWithColorsAsync(string sheetName)
+    {
+        var result = await _httpClient.GetFromJsonAsync<IList<IList<CellDataResponse>>>($"https://localhost:7089/api/sheets/getDataWithColors?sheetName={sheetName}");
+        return result ?? new List<IList<CellDataResponse>>();
+    }
 }

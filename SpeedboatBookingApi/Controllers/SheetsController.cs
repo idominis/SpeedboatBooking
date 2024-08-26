@@ -24,6 +24,23 @@ namespace SpeedboatBookingApi.Controllers
             return Ok(data);
         }
 
+        [HttpGet("getDataWithColors")]
+        public async Task<IActionResult> GetDataWithColors(string sheetName)
+        {
+            try
+            {
+                var data = await _sheetsService.GetSheetDataWithColorsAsync(sheetName);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred while getting sheet data with colors.");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
+
         [HttpPost("updateCellColor")]
         public async Task<IActionResult> UpdateCellColor(string sheetName, int rowIndex, int columnIndex, float red, float green, float blue)
         {
@@ -157,6 +174,20 @@ namespace SpeedboatBookingApi.Controllers
             }
         }
 
+        [HttpGet("isCellBookable")]
+        public async Task<IActionResult> IsCellBookable(string sheetName, int rowIndex, int columnIndex)
+        {
+            try
+            {
+                var isBookable = await _sheetsService.IsCellBookableAsync(sheetName, rowIndex, columnIndex);
+                return Ok(new { bookable = isBookable });
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred while trying to check if the cell is bookable.");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
     }
 }

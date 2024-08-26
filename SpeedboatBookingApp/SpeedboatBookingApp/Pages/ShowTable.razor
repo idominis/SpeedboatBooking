@@ -1,0 +1,43 @@
+﻿@page "/showtable"
+@using SpeedboatBookingApp.Models
+@inject GoogleSheetsService SheetsService
+
+<h3>Google Sheet Table with Colors</h3>
+
+@if (sheetData != null)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                @foreach (var header in sheetData.FirstOrDefault())
+                {
+                    <th>@header?.Value</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in sheetData.Skip(1))
+            {
+                <tr>
+                    @foreach (var cell in row)
+                    {
+                        <td style="background-color:@cell.BackgroundColor">@cell?.Value</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Loading data...</p>
+}
+
+@code {
+    private IList<IList<CellDataResponse>>? sheetData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        sheetData = await SheetsService.GetSheetDataWithColorsAsync("Availability2024"); // Replace with your sheet name
+    }
+}

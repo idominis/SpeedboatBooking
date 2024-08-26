@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Globalization;
 using Serilog;
+using SpeedboatBookingApi.Models;
 
 namespace SpeedboatBookingApi.Services
 {
@@ -39,6 +40,55 @@ namespace SpeedboatBookingApi.Services
             var response = await request.ExecuteAsync();
             return response.Values;
         }
+
+        public async Task<List<List<CellDataResponse>>> GetSheetDataWithColorsAsync(string sheetName)
+        {
+            var sheet = await _sheetsService.Spreadsheets.Get(_spreadsheetId).ExecuteAsync();
+            var sheetId = sheet.Sheets.FirstOrDefault(s => s.Properties.Title == sheetName)?.Properties.SheetId;
+
+            if (sheetId == null)
+            {
+                throw new Exception($"Sheet with name '{sheetName}' not found.");
+            }
+
+            var request = _sheetsService.Spreadsheets.Get(_spreadsheetId);
+            request.Ranges = new List<string> { $"{sheetName}!A1:Z" };
+            request.Fields = "sheets.data.rowData.values.userEnteredFormat,sheets.data.rowData.values.effectiveValue";
+
+            var response = await request.ExecuteAsync();
+            var sheetData = response.Sheets.FirstOrDefault()?.Data.FirstOrDefault();
+
+            var result = new List<List<CellDataResponse>>();
+
+            if (sheetData?.RowData != null)
+            {
+                foreach (var rowData in sheetData.RowData)
+                {
+                    var row = new List<CellDataResponse>();
+                    foreach (var cell in rowData.Values ?? Enumerable.Empty<CellData>())
+                    {
+                        string backgroundColor = null;
+
+                        if (cell.UserEnteredFormat?.BackgroundColor != null)
+                        {
+                            var color = cell.UserEnteredFormat.BackgroundColor;
+                            backgroundColor = $"#{(int)((color.Red ?? 0) * 255):X2}{(int)((color.Green ?? 0) * 255):X2}{(int)((color.Blue ?? 0) * 255):X2}";
+                        }
+
+                        row.Add(new CellDataResponse
+                        {
+                            Value = cell.EffectiveValue?.StringValue ?? cell.EffectiveValue?.NumberValue?.ToString() ?? cell.EffectiveValue?.BoolValue?.ToString(),
+                            BackgroundColor = backgroundColor
+                        });
+                    }
+                    result.Add(row);
+                }
+            }
+
+            return result;
+        }
+
+
 
         public async Task UpdateCellColorAsync(string sheetName, int rowIndex, int columnIndex, float red, float green, float blue)
         {
@@ -263,6 +313,36 @@ namespace SpeedboatBookingApi.Services
             return bookerNames;
         }
 
+        public async Task<bool> IsCellBookableAsync(string sheetName, int rowIndex, int columnIndex)
+        {
+            var cellColor = await GetCellBackgroundColorAsync(sheetName, rowIndex, columnIndex);
+
+            // Define the green color you consider as "bookable"
+            var bookableGreenColor = new Color
+            {
+                Red = 0.0f,
+                Green = 1.0f, // Pure green
+                Blue = 0.0f
+            };
+
+            if (cellColor != null)
+            {
+                // Compare the cell color with the green color (tolerance might be needed due to float precision)
+                return IsColorEqual(cellColor, bookableGreenColor);
+            }
+
+            // If no color is explicitly set, assume it's bookable or not depending on your logic.
+            // Returning true by default if there's no color set.
+            return true;
+        }
+
+        private bool IsColorEqual(Color color1, Color color2)
+        {
+            // Use ?? to provide a default value of 0.0f in case the color component is null
+            return Math.Abs((color1.Red ?? 0.0f) - (color2.Red ?? 0.0f)) < 0.01 &&
+                   Math.Abs((color1.Green ?? 0.0f) - (color2.Green ?? 0.0f)) < 0.01 &&
+                   Math.Abs((color1.Blue ?? 0.0f) - (color2.Blue ?? 0.0f)) < 0.01;
+        }
 
 
     }
