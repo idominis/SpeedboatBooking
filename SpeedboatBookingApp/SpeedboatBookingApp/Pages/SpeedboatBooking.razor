@@ -1,17 +1,18 @@
 ﻿@page "/speedboatbooking"
 @inject IJSRuntime JSRuntime
 @inject GoogleSheetsService SheetsService
+@inject HttpClient Http
 
 <div class="container mt-4">
     <h3>Speedboat Booking</h3>
     <div class="mb-3">
         <label class="form-label">Speedboat:</label>
-        <select class="form-select">
+        <select class="form-select" @bind="selectedSpeedboat">
             @if (speedboats != null)
             {
                 @foreach (var speedboat in speedboats)
                 {
-                    <option>@speedboat</option>
+                    <option value="@speedboat">@speedboat</option>
                 }
             }
         </select>
@@ -28,30 +29,42 @@
     </div>
     <div class="mb-3">
         <label class="form-label">Booker:</label>
-        <select class="form-select">
+        <select class="form-select" @bind="selectedBooker">
             @if (bookers != null)
             {
                 @foreach (var booker in bookers)
                 {
-                    <option>@booker</option>
+                    <option value="@booker">@booker</option>
                 }
             }
         </select>
         <button class="btn btn-primary mt-2">Add booker</button>
     </div>
     <div class="mb-3">
-        <input type="radio" id="withSkipper" name="skipper" value="with" checked />
+        <input type="radio" id="withSkipper" name="skipper" value="true" @onchange="OnSkipperChange" />
         <label for="withSkipper">With Skipper</label>
-        <input type="radio" id="withoutSkipper" name="skipper" value="without" />
+        <input type="radio" id="withoutSkipper" name="skipper" value="false" @onchange="OnSkipperChange" />
         <label for="withoutSkipper">Without Skipper</label>
     </div>
-    <button class="btn btn-success">Book-It</button>
+    <button class="btn btn-success" @onclick="BookIt">Book-It</button>
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success mt-3">
+            @successMessage
+        </div>
+    }
 </div>
 
 @code {
-    private List<string> speedboats;
-    private List<string> bookers;
+    private List<string>? speedboats;
+    private List<string>? bookers;
     private bool isSecondDateDisabled = true;
+    private string? selectedSpeedboat;
+    private string? selectedBooker;
+    private DateTime selectedDate = DateTime.Today;
+    private DateTime secondDate = DateTime.Today.AddDays(1);
+    private bool withSkipper = true;
+    private string? successMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -63,20 +76,66 @@
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeVoidAsync("initializeBootstrapDatepicker", "date1", DateTime.Today.ToString("MM/dd/yyyy"));
-            await JSRuntime.InvokeVoidAsync("initializeBootstrapDatepicker", "date2", DateTime.Today.AddDays(1).ToString("MM/dd/yyyy"));
+            var dotNetObjectRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("initializeBootstrapDatepicker", "date1", selectedDate.ToString("MM/dd/yyyy"), dotNetObjectRef);
+            await JSRuntime.InvokeVoidAsync("initializeBootstrapDatepicker", "date2", secondDate.ToString("MM/dd/yyyy"), dotNetObjectRef);
         }
+    }
+
+    [JSInvokable]
+    public void UpdateDate(string date)
+    {
+        selectedDate = DateTime.Parse(date);
+        StateHasChanged();
     }
 
     private void OnDateTypeChange(ChangeEventArgs e)
     {
-        if (e.Value.ToString() == "range")
-        {
-            isSecondDateDisabled = false;
-        }
-        else
-        {
-            isSecondDateDisabled = true;
-        }
+        isSecondDateDisabled = e.Value?.ToString() != "range";
     }
+
+    private void OnSkipperChange(ChangeEventArgs e)
+    {
+        withSkipper = e.Value?.ToString() == "true";
+    }
+
+    private async Task BookIt()
+    {
+        try
+        {
+            // Reset the success message before starting
+            successMessage = null;
+
+            if (string.IsNullOrEmpty(selectedSpeedboat) || string.IsNullOrEmpty(selectedBooker))
+            {
+                return;
+            }
+
+            var columnIndex = await SheetsService.GetColumnIndexBySpeedboatNameAsync("Availability2024", selectedSpeedboat);
+            if (!columnIndex.HasValue) return;
+
+            var rowIndex = await SheetsService.GetRowIndexByDateAsync("Availability2024", selectedDate);
+            if (!rowIndex.HasValue) return;
+
+            var isBookableResponse = await SheetsService.IsCellBookableAsync("Availability2024", rowIndex.Value, columnIndex.Value);
+            if (isBookableResponse)
+            {
+                var color = withSkipper ? new { red = 0.0f, green = 0.0f, blue = 1.0f } : new { red = 1.0f, green = 0.0f, blue = 0.0f };
+                await SheetsService.UpdateCellColorAsync("Availability2024", rowIndex.Value, columnIndex.Value, color.red, color.green, color.blue);
+                await SheetsService.EnterRenterNameAsync("Availability2024", selectedDate, selectedSpeedboat, selectedBooker);
+
+                // Set the success message
+                successMessage = "Booking completed successfully!";
+            }
+            else
+            {
+                successMessage = "The selected date and speedboat are already booked.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred: {ex.Message}");
+            successMessage = $"An error occurred while booking: {ex.Message}";
+        }
+    }   
 }
