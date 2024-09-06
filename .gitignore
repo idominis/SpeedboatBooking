@@ -1,0 +1,9 @@
+# Ignore Visual Studio folder
+.vs/
+
+# Ignore other common files/folders you want globally ignored
+*.user
+*.suo
+*.log
+bin/
+obj/
