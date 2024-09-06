@@ -4,8 +4,10 @@
     "\\SpeedboatBookingApi",
     "\\SpeedboatBookingApi\\Controllers",
     "\\SpeedboatBookingApi\\Services",
-    "\\SpeedboatBookingApp"
+    "\\SpeedboatBookingApp",
+    "\\SpeedboatBookingApp\\SpeedboatBookingApp",
+    "\\SpeedboatBookingApp\\SpeedboatBookingApp\\Services"
   ],
-  "SelectedNode": "\\SpeedboatBookingApi\\Controllers\\SheetsController.cs",
+  "SelectedNode": "\\SpeedboatBookingApp\\SpeedboatBookingApp\\Services\\GoogleSheetsService.cs",
   "PreviewInSolutionExplorer": false
 }
