@@ -1,0 +1,61 @@
+﻿@page "/settings"
+@inject GoogleSheetsService SheetsService
+
+<h3>Settings</h3>
+
+<div class="container mt-4">
+    <p>This is the settings page. Change text color of a specific cell in the sheet.</p>
+
+    <div class="mb-3">
+        <label>Sheet Name:</label>
+        <input @bind="sheetName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Row Index:</label>
+        <input @bind="rowIndex" type="number" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Column Index:</label>
+        <input @bind="columnIndex" type="number" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Text Color (RGB):</label>
+        <input @bind="red" type="number" class="form-control" placeholder="Red (0-1)" step="0.01" />
+        <input @bind="green" type="number" class="form-control mt-2" placeholder="Green (0-1)" step="0.01" />
+        <input @bind="blue" type="number" class="form-control mt-2" placeholder="Blue (0-1)" step="0.01" />
+    </div>
+
+    <button class="btn btn-primary" @onclick="ChangeTextColor">Change Text Color</button>
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success mt-3">
+            @successMessage
+        </div>
+    }
+</div>
+
+@code {
+    private string sheetName = "Availability2024";
+    private int rowIndex = 0;
+    private int columnIndex = 0;
+    private float red = 0f;
+    private float green = 0f;
+    private float blue = 0f;
+    private string? successMessage;
+
+    private async Task ChangeTextColor()
+    {
+        try
+        {
+            await SheetsService.UpdateTextColorAsync(sheetName, rowIndex, columnIndex, red, green, blue);
+            successMessage = "Text color updated successfully!";
+        }
+        catch (Exception ex)
+        {
+            successMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+}

@@ -21,7 +21,9 @@
                 <tr>
                     @foreach (var cell in row)
                     {
-                        <td style="background-color:@cell.BackgroundColor">@cell?.Value</td>
+                        <td style="background-color:@cell.BackgroundColor; color:@cell.TextColor">
+                            @cell?.Value
+                        </td>
                     }
                 </tr>
             }

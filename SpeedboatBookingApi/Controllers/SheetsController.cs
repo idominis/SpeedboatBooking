@@ -55,6 +55,21 @@ namespace SpeedboatBookingApi.Controllers
             }
         }
 
+        [HttpPost("updateTextColor")]
+        public async Task<IActionResult> UpdateTextColor(string sheetName, int rowIndex, int columnIndex, float red, float green, float blue)
+        {
+            try
+            {
+                await _sheetsService.UpdateTextColorAsync(sheetName, rowIndex, columnIndex, red, green, blue);
+                return Ok(new { message = "Text color updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred while trying to update the text color.");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         // API to get the row index by date
         [HttpGet("getRowIndexByDate")]
         public async Task<IActionResult> GetRowIndexByDate(string sheetName, DateTime date)

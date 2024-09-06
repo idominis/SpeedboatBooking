@@ -49,6 +49,13 @@ public class GoogleSheetsService
         await _httpClient.PostAsync(url, null);
     }
 
+    // Method to update the text color
+    public async Task UpdateTextColorAsync(string sheetName, int rowIndex, int columnIndex, float red, float green, float blue)
+    {
+        var url = $"https://localhost:7089/api/sheets/updateTextColor?sheetName={sheetName}&rowIndex={rowIndex}&columnIndex={columnIndex}&red={red}&green={green}&blue={blue}";
+        await _httpClient.PostAsync(url, null);
+    }
+
     // Method to enter the renter's name in the cell
     public async Task EnterRenterNameAsync(string sheetName, DateTime date, string speedboatName, string renterName)
     {

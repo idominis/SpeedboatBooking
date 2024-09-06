@@ -68,6 +68,7 @@ namespace SpeedboatBookingApi.Services
                     foreach (var cell in rowData.Values ?? Enumerable.Empty<CellData>())
                     {
                         string backgroundColor = null;
+                        string textColor = null;
 
                         if (cell.UserEnteredFormat?.BackgroundColor != null)
                         {
@@ -75,10 +76,17 @@ namespace SpeedboatBookingApi.Services
                             backgroundColor = $"#{(int)((color.Red ?? 0) * 255):X2}{(int)((color.Green ?? 0) * 255):X2}{(int)((color.Blue ?? 0) * 255):X2}";
                         }
 
+                        if (cell.UserEnteredFormat?.TextFormat?.ForegroundColor != null)
+                        {
+                            var color = cell.UserEnteredFormat.TextFormat.ForegroundColor;
+                            textColor = $"#{(int)((color.Red ?? 0) * 255):X2}{(int)((color.Green ?? 0) * 255):X2}{(int)((color.Blue ?? 0) * 255):X2}";
+                        }
+
                         row.Add(new CellDataResponse
                         {
                             Value = cell.EffectiveValue?.StringValue ?? cell.EffectiveValue?.NumberValue?.ToString() ?? cell.EffectiveValue?.BoolValue?.ToString(),
-                            BackgroundColor = backgroundColor
+                            BackgroundColor = backgroundColor,
+                            TextColor = textColor
                         });
                     }
                     result.Add(row);
@@ -87,7 +95,6 @@ namespace SpeedboatBookingApi.Services
 
             return result;
         }
-
 
 
         public async Task UpdateCellColorAsync(string sheetName, int rowIndex, int columnIndex, float red, float green, float blue)
@@ -128,6 +135,49 @@ namespace SpeedboatBookingApi.Services
             var batchUpdate = _sheetsService.Spreadsheets.BatchUpdate(batchUpdateRequest, _spreadsheetId);
             await batchUpdate.ExecuteAsync();
             }
+
+        public async Task UpdateTextColorAsync(string sheetName, int rowIndex, int columnIndex, float red, float green, float blue)
+        {
+            var request = new Request
+            {
+                RepeatCell = new RepeatCellRequest
+                {
+                    Range = new GridRange
+                    {
+                        SheetId = await GetSheetIdAsync(sheetName),
+                        StartRowIndex = rowIndex,
+                        EndRowIndex = rowIndex + 1,
+                        StartColumnIndex = columnIndex,
+                        EndColumnIndex = columnIndex + 1
+                    },
+                    Cell = new CellData
+                    {
+                        UserEnteredFormat = new CellFormat
+                        {
+                            TextFormat = new TextFormat
+                            {
+                                ForegroundColor = new Color
+                                {
+                                    Red = red,
+                                    Green = green,
+                                    Blue = blue
+                                }
+                            }
+                        }
+                    },
+                    Fields = "userEnteredFormat.textFormat.foregroundColor"
+                }
+            };
+
+            var batchUpdateRequest = new BatchUpdateSpreadsheetRequest
+            {
+                Requests = new List<Request> { request }
+            };
+
+            var batchUpdate = _sheetsService.Spreadsheets.BatchUpdate(batchUpdateRequest, _spreadsheetId);
+            await batchUpdate.ExecuteAsync();
+        }
+
 
         private async Task<int> GetSheetIdAsync(string sheetName)
         {
