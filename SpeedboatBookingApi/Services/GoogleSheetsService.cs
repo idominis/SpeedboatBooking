@@ -69,6 +69,7 @@ namespace SpeedboatBookingApi.Services
                     {
                         string backgroundColor = null;
                         string textColor = null;
+                        string cellValue = null;
 
                         if (cell.UserEnteredFormat?.BackgroundColor != null)
                         {
@@ -82,9 +83,32 @@ namespace SpeedboatBookingApi.Services
                             textColor = $"#{(int)((color.Red ?? 0) * 255):X2}{(int)((color.Green ?? 0) * 255):X2}{(int)((color.Blue ?? 0) * 255):X2}";
                         }
 
+                        // If the effective value is a number, try to determine if it's a date
+                        if (cell.EffectiveValue?.NumberValue.HasValue == true)
+                        {
+                            // Check if the number format is a date format
+                            if (cell.UserEnteredFormat?.NumberFormat?.Type == "DATE" ||
+                                cell.UserEnteredFormat?.NumberFormat?.Type == "DATE_TIME")
+                            {
+                                var numberValue = cell.EffectiveValue.NumberValue.Value;
+                                DateTime dateValue = DateTime.FromOADate(numberValue);  // Convert the number to a date
+                                cellValue = dateValue.ToString("d.M.yyyy");  // Adjust the format as per your needs
+                            }
+                            else
+                            {
+                                // If it's not a date, treat it as a regular number
+                                cellValue = cell.EffectiveValue.NumberValue?.ToString();
+                            }
+                        }
+                        else
+                        {
+                            // Use the string or boolean representation if it's not a number
+                            cellValue = cell.EffectiveValue?.StringValue ?? cell.EffectiveValue?.BoolValue?.ToString();
+                        }
+
                         row.Add(new CellDataResponse
                         {
-                            Value = cell.EffectiveValue?.StringValue ?? cell.EffectiveValue?.NumberValue?.ToString() ?? cell.EffectiveValue?.BoolValue?.ToString(),
+                            Value = cellValue,
                             BackgroundColor = backgroundColor,
                             TextColor = textColor
                         });
@@ -95,6 +119,8 @@ namespace SpeedboatBookingApi.Services
 
             return result;
         }
+
+
 
 
         public async Task UpdateCellColorAsync(string sheetName, int rowIndex, int columnIndex, float red, float green, float blue)

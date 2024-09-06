@@ -2,16 +2,20 @@
 @using SpeedboatBookingApp.Models
 @inject GoogleSheetsService SheetsService
 
-<h3>Google Sheet Table with Colors</h3>
+<h3>Google Sheet Table with Vertical Text Aligned to Bottom and Text Colors</h3>
 
 @if (sheetData != null)
 {
     <table class="table table-striped">
         <thead>
             <tr>
-                @foreach (var header in sheetData.FirstOrDefault())
+                @foreach (var header in sheetData.FirstOrDefault().Select((value, index) => new { Value = value, Index = index }))
                 {
-                    <th>@header?.Value</th>
+                    <th style="@(header.Index >= 2 ? "position: relative; height: 200px; padding: 0;" : "")">
+                        <div style="@(header.Index >= 2 ? "writing-mode: vertical-rl; transform: rotate(180deg); position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%) rotate(180deg); padding-bottom: 5px;" : "")">
+                            @header.Value?.Value
+                        </div>
+                    </th>
                 }
             </tr>
         </thead>
