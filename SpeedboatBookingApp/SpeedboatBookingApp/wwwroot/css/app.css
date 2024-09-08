@@ -63,31 +63,10 @@ a, .btn-link {
     content: "An error has occurred."
 }
 
-.square-cell {
-    width: 100px;
-    height: 100px;
-    min-width: 100px; /* Ensure the minimum width */
-    min-height: 100px; /* Ensure the minimum height */
-    text-align: center;
-    vertical-align: middle;
-    padding: 0;
-    overflow: hidden;
-    box-sizing: border-box; /* Include padding and borders in the width/height */
-    max-width: 100px; /* Ensure it does not expand */
-    max-height: 100px; /* Ensure it does not expand */
-    word-wrap: break-word; /* Handle long text */
-}
-
 .vertical-text {
     writing-mode: vertical-rl;
     transform: rotate(180deg);
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%) rotate(180deg);
-    padding-bottom: 5px;
+    white-space: nowrap;
+    text-align: center;
 }
 
-table tr {
-    height: 100px; /* Set fixed row height */
-}

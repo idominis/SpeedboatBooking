@@ -27,7 +27,8 @@ try
 
     // Configure GoogleSheetsService
     var spreadsheetId = "1AjyJFcXeGAzWPoF2zYbJuGe2RdmvqXMFa3_fvYTUwA0";
-    var jsonPath = "C:\\Users\\ido\\OneDrive\\SpeedboatBookingApp\\speedboatbookingapp-28f41b29a0c0.json"; // Update this path if needed
+    //var jsonPath = "C:\\Users\\ido\\OneDrive\\SpeedboatBookingApp\\speedboatbookingapp-28f41b29a0c0.json"; // Update this path if needed
+    var jsonPath = "C:\\Users\\Ivan\\OneDrive\\SpeedboatBookingApp\\speedboatbookingapp-28f41b29a0c0.json"; // Update this path if needed
     builder.Services.AddSingleton(new GoogleSheetsService(spreadsheetId, jsonPath));
 
     // Configure CORS to allow requests from the Blazor app

@@ -2,38 +2,47 @@
 @using SpeedboatBookingApp.Models
 @inject GoogleSheetsService SheetsService
 
-<h3>Google Sheet Table with Vertical Text and Square Cells</h3>
+<h3>Google Sheet Table with Collapsible Rows</h3>
 
 @if (sheetData != null)
 {
-    <table class="table table-striped" style="table-layout: fixed;">
-        <thead>
-            <tr>
-                @for (var colIndex = 0; colIndex < sheetData[0].Count; colIndex++)
-                {
-                    <th style="@(colIndex >= 2 ? "position: relative; height: 200px; padding: 0;" : "")">
-                        <div style="@(colIndex >= 2 ? "writing-mode: vertical-rl; transform: rotate(180deg); position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%) rotate(180deg); padding-bottom: 5px;" : "")">
-                            @sheetData[0][colIndex]?.Value
-                        </div>
-                    </th>
-                }
-            </tr>
-        </thead>
-        <tbody>
-            @for (var rowIndex = 1; rowIndex < sheetData.Count; rowIndex++)
-            {
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead>
                 <tr>
-                    @for (var colIndex = 0; colIndex < sheetData[rowIndex].Count; colIndex++)
+                    @foreach (var header in sheetData[0])
                     {
-                        <td class="@(colIndex >= 2 ? "square-cell" : "")"
-                            style="background-color:@sheetData[rowIndex][colIndex].BackgroundColor; color:@sheetData[rowIndex][colIndex].TextColor">
-                            @sheetData[rowIndex][colIndex]?.Value
-                        </td>
+                        <th>@header?.Value</th>
                     }
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @for (var rowIndex = 1; rowIndex < sheetData.Count; rowIndex++)
+                {
+                    <tr data-bs-toggle="collapse" data-bs-target="#details-@rowIndex" style="cursor:pointer;">
+                        @for (var colIndex = 0; colIndex < sheetData[rowIndex].Count; colIndex++)
+                        {
+                            <td style="background-color:@sheetData[rowIndex][colIndex].BackgroundColor; color:@sheetData[rowIndex][colIndex].TextColor">
+                                @sheetData[rowIndex][colIndex]?.Value
+                            </td>
+                        }
+                    </tr>
+                    <tr id="details-@rowIndex" class="collapse">
+                        <td colspan="@sheetData[0].Count">
+                            <!-- Additional details go here -->
+                            <strong>Details for row @rowIndex:</strong>
+                            <ul>
+                                @foreach (var colIndex in Enumerable.Range(0, sheetData[rowIndex].Count))
+                                {
+                                    <li><strong>Column @colIndex:</strong> @sheetData[rowIndex][colIndex]?.Value</li>
+                                }
+                            </ul>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 else
 {
