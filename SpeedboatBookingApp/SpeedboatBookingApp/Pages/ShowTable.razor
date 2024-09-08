@@ -2,31 +2,32 @@
 @using SpeedboatBookingApp.Models
 @inject GoogleSheetsService SheetsService
 
-<h3>Google Sheet Table with Vertical Text Aligned to Bottom and Text Colors</h3>
+<h3>Google Sheet Table with Vertical Text and Square Cells</h3>
 
 @if (sheetData != null)
 {
-    <table class="table table-striped">
+    <table class="table table-striped" style="table-layout: fixed;">
         <thead>
             <tr>
-                @foreach (var header in sheetData.FirstOrDefault().Select((value, index) => new { Value = value, Index = index }))
+                @for (var colIndex = 0; colIndex < sheetData[0].Count; colIndex++)
                 {
-                    <th style="@(header.Index >= 2 ? "position: relative; height: 200px; padding: 0;" : "")">
-                        <div style="@(header.Index >= 2 ? "writing-mode: vertical-rl; transform: rotate(180deg); position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%) rotate(180deg); padding-bottom: 5px;" : "")">
-                            @header.Value?.Value
+                    <th style="@(colIndex >= 2 ? "position: relative; height: 200px; padding: 0;" : "")">
+                        <div style="@(colIndex >= 2 ? "writing-mode: vertical-rl; transform: rotate(180deg); position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%) rotate(180deg); padding-bottom: 5px;" : "")">
+                            @sheetData[0][colIndex]?.Value
                         </div>
                     </th>
                 }
             </tr>
         </thead>
         <tbody>
-            @foreach (var row in sheetData.Skip(1))
+            @for (var rowIndex = 1; rowIndex < sheetData.Count; rowIndex++)
             {
                 <tr>
-                    @foreach (var cell in row)
+                    @for (var colIndex = 0; colIndex < sheetData[rowIndex].Count; colIndex++)
                     {
-                        <td style="background-color:@cell.BackgroundColor; color:@cell.TextColor">
-                            @cell?.Value
+                        <td class="@(colIndex >= 2 ? "square-cell" : "")"
+                            style="background-color:@sheetData[rowIndex][colIndex].BackgroundColor; color:@sheetData[rowIndex][colIndex].TextColor">
+                            @sheetData[rowIndex][colIndex]?.Value
                         </td>
                     }
                 </tr>
@@ -44,6 +45,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        sheetData = await SheetsService.GetSheetDataWithColorsAsync("Availability2024"); // Replace with your sheet name
+        sheetData = await SheetsService.GetSheetDataWithColorsAsync("Availability2024");
     }
 }
