@@ -3,15 +3,21 @@ using SpeedboatBookingApi.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure GoogleSheetsService
-var spreadsheetId = "1AjyJFcXeGAzWPoF2zYbJuGe2RdmvqXMFa3_fvYTUwA0";
-var jsonPath = "C:\\Users\\ido\\OneDrive\\SpeedboatBookingApp\\speedboatbookingapp-28f41b29a0c0.json"; // Update this path if needed
+// Configure GoogleSheetsService from configuration
+var spreadsheetId = builder.Configuration["GoogleSheets:SpreadsheetId"];
+var jsonPath = builder.Configuration["GoogleSheets:CredentialsPath"];
+
+if (string.IsNullOrEmpty(spreadsheetId) || string.IsNullOrEmpty(jsonPath))
+{
+    throw new InvalidOperationException(
+        "Google Sheets configuration is missing. " +
+        "Please set GoogleSheets:SpreadsheetId and GoogleSheets:CredentialsPath in user secrets or environment variables.");
+}
+
 builder.Services.AddSingleton(new GoogleSheetsService(spreadsheetId, jsonPath));
 
 var app = builder.Build();
